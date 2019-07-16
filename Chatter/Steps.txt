@@ -2,3 +2,8 @@
 
 Create MVC Project with name  Chatter
 
+Create new  branch from Visual Studio -		Initial-commit
+Commit and push the project to this new branch
+
+Create a Pull Request & Merge this Pull Request to Master
+

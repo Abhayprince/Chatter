@@ -1,0 +1,34 @@
+﻿1. Create a git repo Chatter
+
+2. Create MVC Project with name  Chatter
+
+3. Create new  branch from Visual Studio -		Initial-commit
+
+4. Commit and push the project to this new branch
+
+5. git pull origin master --allow-unrelated-histories
+
+6. Resolve conflicts if any
+
+7. Commit and push that changes
+
+8. Create a Pull Request & Merge this Pull Request to Master
+
+9. Create new  branch from Visual Studio -		Initial-commit
+
+10. Commit and push the project to this new branch
+
+11. git pull origin master --allow-unrelated-histories
+
+12. Create a Pull Request & Merge this Pull Request to Master
+
+13. git checkout master
+
+14. git branch --set-upstream-to=origin/master
+
+15. git pull
+
+16. git commit -m "Initial commit"
+
+17. git push
+

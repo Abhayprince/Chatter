@@ -1,2 +1,4 @@
-﻿Create MVC Project with name  Chatter
+﻿Create a git repo Chatter
+
+Create MVC Project with name  Chatter
 

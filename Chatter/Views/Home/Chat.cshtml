@@ -1,0 +1,341 @@
+﻿
+@{
+    ViewBag.Title = "Chat";
+}
+<style type="text/css">
+    .pl-0 {
+        padding-left: 0;
+    }
+
+    .pr-0 {
+        padding-right: 0;
+    }
+
+    .users-panel {
+        padding: 15px;
+        border-right: 1px solid #b8b8b8;
+    }
+
+    ul#users-list {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    #users-list li {
+        clear: both;
+        margin-bottom: 10px;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+    }
+
+        #users-list li:hover {
+            background-color: #ece8f6;
+        }
+
+    .user-initials-label {
+        background: #007bff;
+        padding: 5px;
+        border-radius: 50%;
+        color: #fff;
+        font-size: 15px;
+        height: 35px;
+        width: 35px;
+        margin-right: 8px;
+        line-height: 26px;
+        cursor: pointer;
+    }
+
+    .user-name-label {
+        font-size: 16px;
+        line-height: 35px;
+        color: #007bff;
+        cursor: pointer;
+    }
+
+    .chats-panel {
+        /*position: relative;
+        padding-bottom: 80px;*/
+        /*height: calc(100vh - 68px);*/
+    }
+
+    .compose-box-wrapper {
+    }
+    #send-message-box {
+    height: 45px;
+    font-size: 17px;
+}
+    #send-message-btn {
+    height: 45px;
+    width: 45px;
+}
+    .selected-chat-user-header {
+    border-bottom: 1px solid #007bff;
+    margin-bottom: 15px;
+}
+    .chat-bubble {
+    display: inline-block;
+    max-width: 375px;
+    /*background: #007bff;*/
+    background-color: #9fc8f3;
+    text-align: left;
+    border-radius: 6px;
+}
+    .chat-my .chat-bubble{
+        background-color:#ffd800;
+    }
+    .chat-bubble p {
+    padding: 15px 20px;
+        font-size: 16px;
+    font-weight: 500;
+    line-height: 1.7;
+    color: #000;
+    margin-bottom: 0;
+}
+    #chats-list{
+        list-style-type: none;
+        padding: 15px;
+        margin:0;
+        margin-bottom: 15px;
+    }
+    li.chat-other .chat-bubble{
+        border-bottom-left-radius: 15px;
+    }
+    li.chat-my .chat-bubble{
+        border-bottom-right-radius: 15px;
+    }
+    li.chat-my {
+    text-align: right;
+}
+    .single-chat {
+    position: relative;
+}
+    .chat-by {
+    background: #007bff;
+    padding: 5px;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 15px;
+    height: 35px;
+    width: 35px;
+    margin-right: 8px;
+    line-height: 26px;
+        float: left;
+    position: absolute;
+    bottom: -5px;
+}
+    .chat-content {
+    padding-left: 35px;
+}
+    .chat-timestamp {
+    display: block;
+    padding: 8px;
+    font-size: 10px;
+    font-weight: bold;
+}
+    .chats-wrapper {
+        height: calc(100vh - 195px);
+    overflow-y: scroll;
+}
+    #chats-list li.chat-other {
+    margin-bottom: 15px;
+}
+</style>
+
+<div class="row">
+    <div class="col-sm-3 pl-0">
+        <div class="users-panel">
+            <div class="form-group">
+                <div class="input-group">
+                    <input type="search" id="user-search-box" class="form-control" placeholder="Search contact" />
+                    <spn class="input-group-btn">
+                        <button type="button" class="btn btn-primary" id="user-search-btn">
+                            <span class="glyphicon glyphicon-search"></span>
+                        </button>
+                    </spn>
+                </div>
+            </div>
+            <div class="clearfix"></div>
+            <div id="users-list-wrapper">
+                <ul id="users-list">
+                    <li>
+                        <label class="user-initials-label pull-left">
+                            BR
+                        </label>
+                        <label class="user-name-label">Broadcast <small>(Send to All)</small></label>
+                    </li>
+                    <li>
+                        <label class="user-initials-label pull-left">
+                            AP
+                        </label>
+                        <label class="user-name-label">Abhay Prince</label>
+                    </li>
+                    <li>
+                        <label class="user-initials-label pull-left">
+                            KP
+                        </label>
+                        <label class="user-name-label">Krishna Prince</label>
+                    </li>
+                    <li>
+                        <label class="user-initials-label pull-left">
+                            GS
+                        </label>
+                        <label class="user-name-label">Gaje Singh</label>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-9">
+        <div class="chats-panel row">
+            <div class="selected-chat-user-header">
+                <h2 class="text-center">
+                    <span>
+                        <label class="user-initials-label">AP</label>
+                        <label class="user-name-label">Abhay Prince</label>
+                    </span>"
+                </h2>
+            </div>
+            <div class="clearfix"></div>
+            <div class="chats-wrapper">
+                <ul id="chats-list">
+                    <li class="chat-other">
+                        <div class="single-chat">
+                            <label class="chat-by">AP</label>
+                            <div class="chat-content">
+                                <div class="chat-bubble">
+                                    <p>Hi, Hello this is y first message</p>
+                                </div>
+                                <span class="chat-timestamp text-primary">
+                                    <span class="glyphicon glyphicon-time"></span>
+                                    @DateTime.Now.ToString("dd-MMM-yyyy hh:mm:ss")
+                                </span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="chat-my">
+                        <div class="single-chat">
+                            <div class="chat-content">
+                                <div class="chat-bubble">
+                                    <p>Hi, Hello this is y first message</p>
+                                </div>
+                                <span class="chat-timestamp text-warning">
+                                    <span class="glyphicon glyphicon-time"></span>
+                                    @DateTime.Now.ToString("dd-MMM-yyyy hh:mm:ss")
+                                </span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="chat-other">
+                        <div class="single-chat">
+                            <label class="chat-by" title="Gaje Singh">GS</label>
+                            <div class="chat-content">
+                                <div class="chat-bubble">
+                                    <p>Hello fellas!</p>
+                                </div>
+                                <span class="chat-timestamp text-primary">
+                                    <span class="glyphicon glyphicon-time"></span>
+                                    12-12-2019 01:15:52 AM
+                                </span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="chat-other">
+                        <div class="single-chat">
+                            <label class="chat-by" title="Gaje Singh">GS</label>
+                            <div class="chat-content">
+                                <div class="chat-bubble">
+                                    <p>Hello fellas!</p>
+                                </div>
+                                <span class="chat-timestamp text-primary">
+                                    <span class="glyphicon glyphicon-time"></span>
+                                    12-12-2019 01:15:52 AM
+                                </span>
+                            </div>
+                        </div>
+                    </li>
+                    <li class="chat-my">
+                        <div class="single-chat">
+                            <div class="chat-content">
+                                <div class="chat-bubble">
+                                    <p>Hi Gaje, I am the admin of the Group, wan to tell you something about, I dont know waht?</p>
+                                </div>
+                                <span class="chat-timestamp text-warning">
+                                    <span class="glyphicon glyphicon-time"></span>
+                                    15-15-2025
+                                </span>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="clearfix"></div>
+            <div class="compose-box-wrapper form-group">
+                <div class="input-group">
+                    <input type="text" class="form-control" rows="1" placeholder="Type here..." id="send-message-box" />
+                    <span class="input-group-btn" title="Send">
+                        <button type="button" class="btn btn-info" id="send-message-btn">
+                            <span class="glyphicon glyphicon-send"></span>
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="clearfix"></div>
+<br />
+<div class="clearfix"></div>
+@section scripts{
+<script type="text/javascript">
+    $(function () {
+        $('#send-message-btn').click(function (e) {
+            //let msgHtml = getMyChatHtml($('#send-message-box').val(), new Date());
+            let msgHtml = getOtherChatHtml('PK','Puneet Kumar',$('#send-message-box').val(), new Date());
+            $('#chats-list').append(msgHtml);
+            $('.chats-wrapper').animate({scrollTop:1000},'slow')
+        })
+    })
+    function getOtherChatHtml(initial,name,msg,dt) {
+        return `
+        <li class="chat-other">
+            <div class="single-chat">
+                <label class="chat-by" title="${name}">${initial}</label>
+                <div class="chat-content">
+                    <div class="chat-bubble">
+                        <p>${msg}</p>
+                    </div>
+                    <span class="chat-timestamp text-primary">
+                        <span class="glyphicon glyphicon-time"></span>
+                        ${dt}
+                    </span>
+                </div>
+            </div>
+        </li>`;
+    }
+    function getMyChatHtml(msg,dt) {
+        return `
+        <li class="chat-my">
+            <div class="single-chat">
+                <div class="chat-content">
+                    <div class="chat-bubble">
+                        <p>${msg}</p>
+                    </div>
+                    <span class="chat-timestamp text-warning">
+                        <span class="glyphicon glyphicon-time"></span>
+                        ${dt}
+                    </span>
+                </div>
+            </div>
+        </li>`;
+    }
+    function getSelectedChatHeaderHtml(initial, name) {
+        return `
+        <span>
+            <label class="user-initials-label">${initial}</label>
+            <label class="user-name-label">${name}</label>
+        </span>`
+    }
+</script>
+    }

@@ -6,6 +6,11 @@
     <title>@ViewBag.Title - My ASP.NET Application</title>
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
+    <style type="text/css">
+        html,body,h1,h2,h3,h4,h5,h6,a{
+            font-family: Verdana;
+        }
+    </style>
 </head>
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -16,18 +21,30 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                @Html.ActionLink("Application name", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+                @Html.ActionLink("Chatter", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
             </div>
             <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    <li>@Html.ActionLink("Home", "Index", "Home")</li>
-                    <li>@Html.ActionLink("About", "About", "Home")</li>
-                    <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
-                </ul>
+                @*<ul class="nav navbar-nav">
+                        <li>@Html.ActionLink("Home", "Index", "Home")</li>
+                        <li>@Html.ActionLink("About", "About", "Home")</li>
+                        <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
+                    </ul>*@
             </div>
         </div>
     </div>
-    <div class="container body-content">
+    <div class="container-fluid">
+        @*<div class="col-sm-3">
+            <h2>Active Users</h2>
+            <a role="button" class="btn btn-sm btn-primary disabled" disabled id="display-name">Me</a>
+            <ul id="active-users-list">
+                <li id="user-li-broadcast">
+                <a role="button" class="user-link" title="Broadcast Message (Send to All)" data-name="Broadcast" data-userid="">Broadcast</a>
+                </li>
+            </ul>
+        </div>
+        <div class="col-sm-9">
+            @RenderBody()
+        </div>*@
         @RenderBody()
         <hr />
         <footer>
@@ -37,6 +54,67 @@
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+
+    <script type="text/javascript">
+        const userNamesDb = 'userNames';
+        const messagesDb = 'messages';
+        if (!sessionStorage[userNamesDb]) {
+            sessionStorage[userNamesDb] = JSON.stringify({});
+        }
+        if (!sessionStorage[messagesDb]) {
+            sessionStorage[messagesDb] = JSON.stringify([]);
+        }
+        function getMessagesFromStorage(userId) {
+            const allMessages = JSON.parse(sessionStorage[messagesDb]);
+            if (allMessages && allMessages.length) {
+                return allMessages.filter(m => m.userId === userId) || [];
+            }
+        }
+        function saveUsersToStorage(users) {
+            sessionStorage[userNamesDb] = JSON.stringify(users);
+        }
+        const getUserName = (userId) => JSON.parse(sessionStorage[userNamesDb])[userId] || '';
+        function saveMessageToStorage(fromUserId, message, toUserId, isBroadcasted = false) {
+            let messages = JSON.parse(sessionStorage[messagesDb] || []);
+            messages.push({
+                'From': {
+                    'UserId': fromUserId,
+                    'Name': getUserName(fromUserId)
+                },
+                'To': {
+                    'UserId': toUserId,
+                    'Name': getUserName(toUserId)
+                },
+                'Msg': message,
+                'IsBroadcast': isBroadcasted,
+                'dt': new Date()
+            });
+            sessionStorage[messagesDb] = JSON.stringify(messages);
+        }
+        function setUsersList(usersJson) {
+            console.log('usersJson : ', usersJson);
+            const usersDdl = $('#active-users-list');
+            console.log('usersDdl : ',usersDdl)
+            $('li:not(#user-li-broadcast)',usersDdl).empty();
+            if (usersJson) {
+                let users = JSON.parse(usersJson);
+                const myName = $('#displayname').val();
+                console.log('users : ',users)
+                if (users) {
+                    saveUsersToStorage(users);
+                    let liArray = Object.keys(users).map(u => {
+                        if(users[u]!==myName)
+                            return `<li><a role="button" class="user-link" title="${users[u]}" data-name="${users[u]}" data-userid="${u}">${users[u]}</a></li>`
+                    });
+                    console.log('liArray : ',liArray)
+                    if (liArray) {
+                        console.log('liArray.join() : ',liArray.join(''))
+                        usersDdl.append(liArray.join(''));
+                    }
+                }
+            }
+        }
+    </script>
     @RenderSection("scripts", required: false)
 </body>
 </html>

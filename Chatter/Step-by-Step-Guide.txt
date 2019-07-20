@@ -1,2 +1,11 @@
 ﻿
 install-package Microsoft.AspNet.Signalr
+
+Add New Item -> SignalR -> HubClass v2
+Name it ChatHub.cs
+
+Add New Item -> Startup class file
+
+Open this Startup.cs file ->  Add following line of code to Configuration Method
+app.MapSignalR();
+

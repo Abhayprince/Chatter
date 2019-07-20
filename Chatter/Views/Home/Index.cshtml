@@ -1,125 +1,238 @@
 ﻿@{
     ViewBag.Title = "Chat";
 }
-<style type="text/css">
-    ul {
-        list-style-type: none;
-    }
 
-    li {
-        border-bottom: 1px solid #ddd;
-    }
-
-    .user-link {
-        padding: 5px;
-        /* border: 1px solid; */
-        display: inline-block;
-    }
-
-        .user-link:hover {
-            text-decoration: none;
-        }
-</style>
-<div class="col-sm-3">
-    <h2>Active Users</h2>
-    <a role="button" class="btn btn-sm btn-primary disabled" disabled id="display-name">Me</a>
-    <ul id="active-users-list">
-        <li id="user-li-broadcast">
-            <a role="button" class="user-link" title="Broadcast Message (Send to All)" data-name="Broadcast" data-userid="">Broadcast</a>
-        </li>
-    </ul>
-</div>
-<div class="col-sm-9">
-
-    <h2 id="selected-user-name">Messages</h2>
-    <div class="container">
-        @*<input type="text" id="message" />
-            <input type="button" id="sendmessage" value="Send" />
-            <input type="hidden" id="displayname" />
-            <ul id="discussion"></ul>*@
-
-        <ul id="discussions"></ul>
-        <div class="form-group">
-            <div class="input-group">
-                <input type="text" class="form-control" id="message" />
-                <button type="button" class="input-group-btn btn btn-success" id="sendmessage">
-                    <span class="glyphicon glyphicon-send"></span>
-                </button>
+<div class="container-fluid">
+    <div class="modal swing animated" tabindex="-1" id="welcome-modal" role="dialog" data-keyboard="false" data-backdrop="static">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-center">
+                    @*<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>*@
+                    <h4 class="modal-title">Welcome to Chatter</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="control-label">Your name</label>
+                        <input type="text" class="form-control" id="user-name-txt" placeholder="Enter your name" required />
+                        <input type="hidden" id="current-user-name-hdn" />
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-primary btn-block" id="start-chat-btn">
+                            Start Chat <span class="glyphicon glyphicon-log-in"></span>
+                        </button>
+                    </div>
+                </div>
+                @*<div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                    </div>*@
             </div>
         </div>
-        <input type="hidden" id="displayname" />
-        <input type="hidden" id="selected-userid" />
     </div>
+    <div class="clearfix"></div>
+    <div id="chat-page-container" class="hide animated bounceIn">
+        <div class="row">
+            <div class="col-sm-3 pl-0">
+                <div class="users-panel">
+                    <div class="form-group">
+                        <div class="input-group">
+                            <input type="search" id="user-search-box" class="form-control" placeholder="Search contact" />
+                            <spn class="input-group-btn">
+                                <button type="button" class="btn btn-primary" id="user-search-btn">
+                                    <span class="glyphicon glyphicon-search"></span>
+                                </button>
+                            </spn>
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+                    <div id="users-list-wrapper">
+                        <ul id="users-list">
+                            <li id="user-li-broadcast" title="Broadcast (Send to All)" data-userid="" class="user-li-btn">
+                                <label class="user-initials-label pull-left">BR</label>
+                                <label class="user-name-label">Broadcast <small>(Send to All)</small></label>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-9">
+                <div class="chats-panel row">
+                    <div class="selected-chat-user-header">
+                        <h2 id="selected-user-header-name" class="text-center">
+                            <span>
+                                <label class="user-initials-label">AP</label>
+                                <label class="user-name-label">Abhay Prince</label>
+                            </span>"
+                        </h2>
+                    </div>
+                    <input type="hidden" id="selected-userid" />
+                    <div class="clearfix"></div>
+                    
+                    <div class="chats-wrapper">
+                        <ul id="chats-list">
+                            <li class="chat-other">
+                                <div class="single-chat">
+                                    <label class="chat-by">AP</label>
+                                    <div class="chat-content">
+                                        <div class="chat-bubble">
+                                            <p>Hi, Hello this is y first message</p>
+                                        </div>
+                                        <span class="chat-timestamp text-primary">
+                                            <span class="glyphicon glyphicon-time"></span>
+                                            @DateTime.Now.ToString("dd-MMM-yyyy hh:mm:ss")
+                                        </span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="chat-my">
+                                <div class="single-chat">
+                                    <div class="chat-content">
+                                        <div class="chat-bubble">
+                                            <p>Hi, Hello this is y first message</p>
+                                        </div>
+                                        <span class="chat-timestamp text-warning">
+                                            <span class="glyphicon glyphicon-time"></span>
+                                            @DateTime.Now.ToString("dd-MMM-yyyy hh:mm:ss")
+                                        </span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="chat-other">
+                                <div class="single-chat">
+                                    <label class="chat-by" title="Gaje Singh">GS</label>
+                                    <div class="chat-content">
+                                        <div class="chat-bubble">
+                                            <p>Hello fellas!</p>
+                                        </div>
+                                        <span class="chat-timestamp text-primary">
+                                            <span class="glyphicon glyphicon-time"></span>
+                                            12-12-2019 01:15:52 AM
+                                        </span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="chat-other">
+                                <div class="single-chat">
+                                    <label class="chat-by" title="Gaje Singh">GS</label>
+                                    <div class="chat-content">
+                                        <div class="chat-bubble">
+                                            <p>Hello fellas!</p>
+                                        </div>
+                                        <span class="chat-timestamp text-primary">
+                                            <span class="glyphicon glyphicon-time"></span>
+                                            12-12-2019 01:15:52 AM
+                                        </span>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="chat-my">
+                                <div class="single-chat">
+                                    <div class="chat-content">
+                                        <div class="chat-bubble">
+                                            <p>Hi Gaje, I am the admin of the Group, wan to tell you something about, I dont know waht?</p>
+                                        </div>
+                                        <span class="chat-timestamp text-warning">
+                                            <span class="glyphicon glyphicon-time"></span>
+                                            15-15-2025
+                                        </span>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="clearfix"></div>
+                    <div class="compose-box-wrapper form-group">
+                        <div class="input-group">
+                            <input type="text" class="form-control" rows="1" placeholder="Type here..." id="send-message-box" />
+                            <span class="input-group-btn" title="Send">
+                                <button type="button" class="btn btn-info" id="send-message-btn">
+                                    <span class="glyphicon glyphicon-send"></span>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="clearfix"></div>
 </div>
+
 @section scripts {
     <!--Script references. -->
     <!--The jQuery library is required and is referenced by default in _Layout.cshtml. -->
     <!--Reference the SignalR library. -->
-    <script src="~/Scripts/jquery.signalR-2.4.1.min.js"></script>
+    @*<script src="~/Scripts/jquery.signalR-2.4.1.min.js"></script>*@
     <!--Reference the autogenerated SignalR hub script. -->
-    <script src="~/signalr/hubs"></script>
+    @*<script src="~/signalr/hubs"></script>*@
     <!--SignalR script to update the chat page and send messages.-->
     <script>
-        $(function () {
-            $(document).on('click', '.user-link', function (e) {
-                const userName = $('#selected-user-name');
-                const btn = $(this);
-                userName.text(btn.data('name') || 'Messages');
-                $('#selected-userid').val(btn.data('userid') || '');
-            });
+        //$(function () {
+        //    $('#welcome-modal').modal('show');
+        //    $('#start-chat-btn').click(function (e) {
+        //        $('#welcome-modal').modal('hide');
+        //        $('#chat-page-container').removeClass('hide');
+        //    })
+        //    $(document).on('click', '.user-link', function (e) {
+        //        const userName = $('#selected-user-name');
+        //        const btn = $(this);
+        //        userName.text(btn.data('name') || 'Messages');
+        //        $('#selected-userid').val(btn.data('userid') || '');
+        //    });
 
-            // Reference the auto-generated proxy for the hub.
-            var chat = $.connection.chatterHub;
-            // Create a function that the hub can call back to display messages.
-            chat.client.send = function (name, message) {
-                // Add the message to the page.
-                $('#discussions').append('<li><strong>' + htmlEncode(name)
-                    + '</strong>: ' + htmlEncode(message) + '</li>');
-            };
-            chat.client.hello = (msg) => {
-                console.log(`Message from server : ${msg}`)
-            }
-            chat.client.broadcast = (name, msg) => {
-                $('#discussions').append('<li><strong>' + htmlEncode(name)
-                    + '</strong>: ' + htmlEncode(msg) + '</li>');
-                //saveMessageToStorage(fromUserId, message, toUserId, isBroadcasted = false)
-            }
+        //    // Reference the auto-generated proxy for the hub.
+        //    var chat = $.connection.chatterHub;
+        //    // Create a function that the hub can call back to display messages.
+        //    chat.client.send = function (name, message) {
+        //        // Add the message to the page.
+        //        $('#discussions').append('<li><strong>' + htmlEncode(name)
+        //            + '</strong>: ' + htmlEncode(message) + '</li>');
+        //    };
+        //    chat.client.hello = (msg) => {
+        //        console.log(`Message from server : ${msg}`)
+        //    }
+        //    chat.client.broadcast = (name, msg) => {
+        //        $('#discussions').append('<li><strong>' + htmlEncode(name)
+        //            + '</strong>: ' + htmlEncode(msg) + '</li>');
+        //        //saveMessageToStorage(fromUserId, message, toUserId, isBroadcasted = false)
+        //    }
 
-            chat.client.usersList = users => {
-                console.log('usersList : ', users);
-                setUsersList(users);
-            }
+        //    chat.client.usersList = users => {
+        //        console.log('usersList : ', users);
+        //        setUsersList(users);
+        //    }
 
-            // Get the user name and store it to prepend to messages.
-            $('#displayname').val(prompt('Enter your name:', ''));
-            $('#display-name').text(`${$('#displayname').val()} (Me)`);
-            // Set initial focus to message input box.
-            $('#message').focus();
-            // Start the connection.
-            $.connection.hub.start().done(function () {
-                chat.server.hello($('#displayname').val());
-                $('#sendmessage').click(function () {
-                    //// Call the Send method on the hub.
-                    //chat.server.send($('#displayname').val(), $('#message').val());
-                    //// Clear text box and reset focus for next comment.
+        //    // Get the user name and store it to prepend to messages.
+        //    //$('#displayname').val(prompt('Enter your name:', ''));
+        //    $('#display-name').text(`${$('#displayname').val()} (Me)`);
+        //    // Set initial focus to message input box.
+        //    $('#message').focus();
+        //    // Start the connection.
+        //    $.connection.hub.start().done(function () {
+        //        chat.server.hello($('#displayname').val());
+        //        $('#sendmessage').click(function () {
+        //            //// Call the Send method on the hub.
+        //            //chat.server.send($('#displayname').val(), $('#message').val());
+        //            //// Clear text box and reset focus for next comment.
 
-                    const selectedUserId = $('#selected-userid').val();
-                    const msg = $('#message').val();
-                    if (selectedUserId) {
-                        chat.server.send(selectedUserId, msg)
-                    }
-                    else {
-                        chat.server.broadcast(msg);
-                    }
-                    $('#discussions').append('<li><strong>Me</strong>: ' + htmlEncode(msg) + '</li>');
-                    $('#message').val('').focus();
-                });
-            });
-        });
-        // This optional function html-encodes messages for display in the page.
-        function htmlEncode(value) {
-            var encodedValue = $('<div />').text(value).html();
-            return encodedValue;
-        }
+        //            const selectedUserId = $('#selected-userid').val();
+        //            const msg = $('#message').val();
+        //            if (selectedUserId) {
+        //                chat.server.send(selectedUserId, msg)
+        //            }
+        //            else {
+        //                chat.server.broadcast(msg);
+        //            }
+        //            $('#discussions').append('<li><strong>Me</strong>: ' + htmlEncode(msg) + '</li>');
+        //            $('#message').val('').focus();
+        //        });
+        //    });
+        //});
+        //// This optional function html-encodes messages for display in the page.
+        //function htmlEncode(value) {
+        //    var encodedValue = $('<div />').text(value).html();
+        //    return encodedValue;
+        //}
     </script>
 }

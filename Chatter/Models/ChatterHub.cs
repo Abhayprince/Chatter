@@ -28,11 +28,12 @@ namespace Chatter
             //string userId = Context.ConnectionId;            
             Users.Add(this.UserId, "Anonymous");
 
-            Clients.Caller.hello("Send to only the last one");
-            Clients.Others.hello("Send to everyone except last");
+            //Clients.Caller.hello("Send to only the last one");
+            //Clients.Others.hello("Send to everyone except last");
             
             return base.OnConnected();
         }
+
         public override Task OnDisconnected(bool stopCalled)
         {
             if(Users?.Keys.Any(x=>x== this.UserId)==true)
@@ -43,7 +44,7 @@ namespace Chatter
         {
             Users[this.UserId] = name;
             //Clients.All.usersList(JsonConvert.SerializeObject(Users));
-            Clients.All.usersList(Users);
+            Clients.All.receiveConnectedUsers(Users);
         }
         public void Broadcast(string message)
         {

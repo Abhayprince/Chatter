@@ -1,24 +1,28 @@
 ﻿$(function () {
 
     const welcomeModal = $('#welcome-modal');
-    welcomeModal.modal('show');
-
     const userNameTxt = $('#user-name-txt')
+
+    welcomeModal.modal('show');
+    userNameTxt.focus();
 
     const userNameHdn = $('#current-user-name-hdn');
 
     const userNamesDb = 'userNames';
     const messagesDb = 'messages';
 
+    const currentUserIdHdn = $('#current-userid');
     const searchUserTxt = $('#user-search-box');
     const searchUserBtn = $('#user-search-btn');
     const usersListUl = $('#users-list');
     const selectedChatHeader = $('#selected-user-header-name');
     const chatsList = $('#chats-list');
+    const chatsWrapper = $('.chats-wrapper');
     const sendChatTxt = $('#send-message-box');
     const sendChatBtn = $('#send-message-btn');
 
     const currentUserName = () => userNameHdn.val();
+    const currentUserId = () => currentUserIdHdn.val();
 
     const getInitial = (name) => {
         const parts = name.split(/[\s\-_\.]/g);
@@ -38,7 +42,17 @@
     getMessagesFromStorage = (userId) => {
         const allMessages = JSON.parse(sessionStorage[messagesDb]);
         if (allMessages && allMessages.length) {
-            return allMessages.filter(m => m.userId === userId) || [];
+            const myUserId = currentUserId();
+            return allMessages.filter(m => m.To.UserId === userId || (m.To.UserId === myUserId && m.From.UserId === userId)) || [];
+        }
+        return [];
+    }
+
+    getBroadcastMessagesFromStorage = () => {
+        const allMessages = JSON.parse(sessionStorage[messagesDb]);
+        if (allMessages && allMessages.length) {
+            const myUserId = currentUserId();
+            return allMessages.filter(m => m.IsBroadcast && m.From.UserId === myUserId) || [];
         }
         return [];
     }
@@ -47,18 +61,18 @@
         sessionStorage[userNamesDb] = JSON.stringify(users);
     }
 
-    const getUserNameById = (userId) => JSON.parse(sessionStorage[userNamesDb])[userId] || '';
+    getUserNameById = (userId) => JSON.parse(sessionStorage[userNamesDb])[userId] || '';
 
     saveMessageToStorage = (fromUserId, message, toUserId, isBroadcasted = false) => {
         let messages = JSON.parse(sessionStorage[messagesDb] || []);
         messages.push({
             'From': {
                 'UserId': fromUserId,
-                'Name': getUserName(fromUserId)
+                'Name': getUserNameById(fromUserId)
             },
             'To': {
-                'UserId': toUserId,
-                'Name': getUserName(toUserId)
+                'UserId': toUserId !== 'broadcast' ? toUserId : '',
+                'Name': toUserId !== 'broadcast' ? getUserNameById(toUserId) : ''
             },
             'Msg': message,
             'IsBroadcast': isBroadcasted,
@@ -67,7 +81,7 @@
         sessionStorage[messagesDb] = JSON.stringify(messages);
     }
 
-    const getFormattedDT = dt => {
+    getFormattedDT = dt => {
         dt = dt || new Date();
 
         let date = dt.getDate();
@@ -87,7 +101,7 @@
     }
 
     setUsersList = (users) => {
-        $('li:not(#user-li-broadcast)', usersListUl).empty();
+        $('li:not(#user-li-broadcast)', usersListUl).remove();
         if (users) {
             const myName = currentUserName();
             console.log('users : ', users)
@@ -106,6 +120,7 @@
     }
 
     getOtherChatHtml = (initial, name, msg, dt) => {
+        dt = dt || getFormattedDT();
         return `
         <li class="chat-other">
             <div class="single-chat">
@@ -124,6 +139,7 @@
     }
 
     getMyChatHtml = (msg, dt) => {
+        dt = dt || getFormattedDT();
         return `
         <li class="chat-my">
             <div class="single-chat">
@@ -140,10 +156,10 @@
         </li>`;
     }
 
-    getSelectedChatHeaderHtml = (name) => {
+    getSelectedChatHeaderHtml = (name, initial) => {
         return `
         <span>
-            <label class="user-initials-label">${getInitial(name)}</label>
+            <label class="user-initials-label">${initial || getInitial(name)}</label>
             <label class="user-name-label">${name}</label>
         </span>`
     }
@@ -156,7 +172,7 @@
         </li>`;
     }
 
-    $('#start-chat-btn').click(function (e) {
+    startChat = () => {
         const name = userNameTxt.val();
         if (name && name.replace(/\s{2,}/g, ' ').trim()) {
             userNameHdn.val(name);
@@ -168,7 +184,30 @@
         }
         alert('Please enter your name');
         userNameTxt.focus();
-    })
+    }
+
+    $('#start-chat-btn').click((e) => startChat)
+
+    userNameTxt.keydown((e) => {
+        if (e.keyCode == 13)
+            startChat();
+    });
+
+    setMessagesToList = messages => {
+        if (messages) {
+            const myUserId = currentUserId();
+            messages.forEach(m => {
+                let msgHtml = null;
+                if (m.From.UserId === myUserId)
+                    msgHtml = getMyChatHtml(m.Msg,m.dt);
+                else
+                    msgHtml = getOtherChatHtml(getInitial(m.From.Name), m.From.Name, m.Msg,m.dt);
+
+                if (msgHtml)
+                    addMessageToChat(msgHtml);
+            })
+        }
+    }
 
     $(document).on('click', '.user-li-btn', function (e) {
         const li = $(this);
@@ -176,112 +215,103 @@
         const name = li.attr('title');
 
         sendChatBtn.data('send-to-id', userId);
-        selectedChatHeader.html(getSelectedChatHeaderHtml(name))
+        chatsList.empty();
+        let existingMessages = [];
+        if (userId === 'broadcast') {
+            selectedChatHeader.html(getSelectedChatHeaderHtml(name, 'BR'))
+            existingMessages=getBroadcastMessagesFromStorage();
+        }
+        else {
+            selectedChatHeader.html(getSelectedChatHeaderHtml(name))
+            existingMessages = getMessagesFromStorage(userId);
+        }
+        if (existingMessages && existingMessages.length) {
+            setMessagesToList(existingMessages);
+        }
+        sendChatTxt.addClass('animated bounceInDown');
+        sendChatTxt.focus();
     });
 
-    ////////////////////////////
+    applyUserSearch = () => {
+        let q = searchUserTxt.val();        
+        if (q)
+            q = q.replace(/\s{2,}/g, ' ').trim();
+        if (q) {
+            q = q.toLowerCase();
+            $('li', usersListUl).each(function (index,el) {
+                li = $(this);
+                let name = li.attr('title');
+                if (name) {
+                    name = name.toLowerCase();
+                    if (name.indexOf(q) > -1 || name.indexOf(' ' + q)>-1 || name.indexOf('-' + q)>-1)
+                        li.show();
+                    else
+                        li.hide();
+                }
+            });
+        }
+        else
+            $('li', usersListUl).show();
+    }
+    searchUserBtn.click((e) => {        
+        applyUserSearch();
+    });
+
+    searchUserTxt.keyup((e) => {
+            applyUserSearch();
+    });
+    sendChatTxt.keydown((e) => {
+        console.log('KEYDOWN')
+        if (e.keyCode == 13)
+            sendChatBtn.trigger('click');
+    });
+
+    addMessageToChat = msgHtml => {
+        chatsList.append(msgHtml);
+        chatsWrapper.animate({ scrollTop: chatsWrapper[0].scrollHeight }, 'slow')
+    }
 
     function initiateChatter(name) {
         const userName = name;
         const chat = $.connection.chatterHub;
+
+        chat.client.receiveUserId = userId => {
+            currentUserIdHdn.val(userId);
+        }
 
         chat.client.receiveConnectedUsers = usersList => {
             console.log('usersList : ', usersList);
             setUsersList(usersList);
         }
 
-        $.connection.hub.start().done(function () {
+        chat.client.receiveMessage = (fromUserId, fromName, msg,isBroadcasted) => {
+            fromName = fromName || 'Anonymous';
+            let msgHtml = getOtherChatHtml(getInitial(fromName), fromName, msg);
+            addMessageToChat(msgHtml);
+            saveMessageToStorage(fromUserId, msg, currentUserId(), isBroadcasted)
+        }
+
+        $.connection.hub.start().done(() => {
 
             chat.server.hello(userName);
 
-            $('#sendmessage').click(function () {
-                //// Call the Send method on the hub.
-                //chat.server.send($('#displayname').val(), $('#message').val());
-                //// Clear text box and reset focus for next comment.
+            sendChatBtn.click(function (e) {
+                const msg = sendChatTxt.val();
+                if (msg) {
+                    const toUserId = sendChatBtn.data('send-to-id');
+                    console.log('toUserId : ', toUserId)
+                    if (toUserId === 'broadcast')
+                        chat.server.broadcast(msg)
+                    else
+                        chat.server.send(toUserId, msg);
 
-                const selectedUserId = $('#selected-userid').val();
-                const msg = $('#message').val();
-                if (selectedUserId) {
-                    chat.server.send(selectedUserId, msg)
+                    addMessageToChat(getMyChatHtml(msg))
+                    sendChatTxt.val('');
+                    sendChatTxt.focus();
+
+                    saveMessageToStorage(currentUserId(), msg, toUserId, toUserId === 'broadcast')
                 }
-                else {
-                    chat.server.broadcast(msg);
-                }
-                $('#discussions').append('<li><strong>Me</strong>: ' + htmlEncode(msg) + '</li>');
-                $('#message').val('').focus();
             });
         });
     }
-
-
-
-
-
-
-    /////////////////////////////////////
-
-    $(document).on('click', '.user-link', function (e) {
-        const userName = $('#selected-user-name');
-        const btn = $(this);
-        userName.text(btn.data('name') || 'Messages');
-        $('#selected-userid').val(btn.data('userid') || '');
-    });
-    // This optional function html-encodes messages for display in the page.
-    htmlEncode = (value) => {
-        var encodedValue = $('<div />').text(value).html();
-        return encodedValue;
-    }
-    // Reference the auto-generated proxy for the hub.
-    var chat = $.connection.chatterHub;
-    // Create a function that the hub can call back to display messages.
-    chat.client.send = function (name, message) {
-        // Add the message to the page.
-        $('#discussions').append('<li><strong>' + htmlEncode(name)
-            + '</strong>: ' + htmlEncode(message) + '</li>');
-    };
-    chat.client.hello = (msg) => {
-        console.log(`Message from server : ${msg}`)
-    }
-    chat.client.broadcast = (name, msg) => {
-        $('#discussions').append('<li><strong>' + htmlEncode(name)
-            + '</strong>: ' + htmlEncode(msg) + '</li>');
-        //saveMessageToStorage(fromUserId, message, toUserId, isBroadcasted = false)
-    }
-
-    chat.client.usersList = users => {
-        console.log('usersList : ', users);
-        setUsersList(users);
-    }
-
-    // Get the user name and store it to prepend to messages.
-    //$('#displayname').val(prompt('Enter your name:', ''));
-    $('#display-name').text(`${$('#displayname').val()} (Me)`);
-    // Set initial focus to message input box.
-    $('#message').focus();
-    // Start the connection.
-    $.connection.hub.start().done(function () {
-        chat.server.hello($('#displayname').val());
-        $('#sendmessage').click(function () {
-            //// Call the Send method on the hub.
-            //chat.server.send($('#displayname').val(), $('#message').val());
-            //// Clear text box and reset focus for next comment.
-
-            const selectedUserId = $('#selected-userid').val();
-            const msg = $('#message').val();
-            if (selectedUserId) {
-                chat.server.send(selectedUserId, msg)
-            }
-            else {
-                chat.server.broadcast(msg);
-            }
-            $('#discussions').append('<li><strong>Me</strong>: ' + htmlEncode(msg) + '</li>');
-            $('#message').val('').focus();
-        });
-    });
-    $('#send-message-btn').click(function (e) {
-        //let msgHtml = getMyChatHtml($('#send-message-box').val(), new Date());
-        let msgHtml = getOtherChatHtml('PK', 'Puneet Kumar', $('#send-message-box').val(), new Date());
-        $('#chats-list').append(msgHtml);
-        $('.chats-wrapper').animate({ scrollTop: $('.chats-wrapper')[0].scrollHeight }, 'slow')
-    })
 });

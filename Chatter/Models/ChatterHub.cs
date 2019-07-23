@@ -17,20 +17,20 @@ namespace Chatter
         }
         public ChatterHub()
         {
-            if (Users == null)
-                Users = new Dictionary<string, string>();
         }
         private string UserId => Context.ConnectionId;
-        private string UserName => Users[Context.ConnectionId];
+        private string UserName => Users.Keys.Any(id => id == this.UserId) ? Users[Context.ConnectionId] : null;
 
         public override Task OnConnected()
-        {
-            //string userId = Context.ConnectionId;            
+        {          
             Users.Add(this.UserId, "Anonymous");
-
-            //Clients.Caller.hello("Send to only the last one");
-            //Clients.Others.hello("Send to everyone except last");
-            
+            Clients.Caller.receiveUserId(this.UserId);
+            return base.OnConnected();
+        }
+        public override Task OnReconnected()
+        {
+            if(!Users.Keys.Any(x=>x==this.UserId))
+                Users.Add(this.UserId, this.UserName?? "Anonymous");
             return base.OnConnected();
         }
 
@@ -38,22 +38,26 @@ namespace Chatter
         {
             if(Users?.Keys.Any(x=>x== this.UserId)==true)
                 Users.Remove(Context.ConnectionId);
+            if(Users.Count()>0)
+                Clients.All.receiveConnectedUsers(Users);
             return base.OnDisconnected(stopCalled);
         }
+
         public void Hello(string name)
         {
             Users[this.UserId] = name;
-            //Clients.All.usersList(JsonConvert.SerializeObject(Users));
             Clients.All.receiveConnectedUsers(Users);
         }
+
         public void Broadcast(string message)
         {
-            Clients.Others.broadcast(this.UserName,message);
+            Clients.Others.receiveMessage(this.UserId,this.UserName,message, isBroadcasted:true);
         }
+
         public void Send(string toUserId, string message)
         {
             if (Users.Keys.Any(x => x == toUserId))
-                Clients.Client(toUserId).send(this.UserName, message);
+                Clients.Client(toUserId).receiveMessage(this.UserId, this.UserName, message);
         }
     }
 }

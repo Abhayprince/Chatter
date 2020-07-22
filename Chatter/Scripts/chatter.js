@@ -186,7 +186,7 @@
         userNameTxt.focus();
     }
 
-    $('#start-chat-btn').click((e) => startChat)
+    $('#start-chat-btn').click((e) => startChat())
 
     userNameTxt.keydown((e) => {
         if (e.keyCode == 13)

@@ -10,35 +10,40 @@ namespace Chatter
 {
     public class ChatterHub : Hub
     {
-        public static Dictionary<string,string> Users { get; set; }
-        static ChatterHub()
-        {
-            Users = new Dictionary<string, string>();
-        }
+        public static Dictionary<string, string> Users { get; set; } = new Dictionary<string, string>();
+
         public ChatterHub()
         {
         }
         private string UserId => Context.ConnectionId;
-        private string UserName => Users.Keys.Any(id => id == this.UserId) ? Users[Context.ConnectionId] : null;
+        private string UserName
+        {
+            get
+            {
+                if (Users.TryGetValue(this.UserId, out var name))
+                    return name;
+                return null;
+            }
+        }
 
         public override Task OnConnected()
-        {          
+        {
             Users.Add(this.UserId, "Anonymous");
             Clients.Caller.receiveUserId(this.UserId);
             return base.OnConnected();
         }
         public override Task OnReconnected()
         {
-            if(!Users.Keys.Any(x=>x==this.UserId))
-                Users.Add(this.UserId, this.UserName?? "Anonymous");
+            if (!Users.Keys.Any(x => x == this.UserId))
+                Users.Add(this.UserId, this.UserName ?? "Anonymous");
             return base.OnConnected();
         }
 
         public override Task OnDisconnected(bool stopCalled)
         {
-            if(Users?.Keys.Any(x=>x== this.UserId)==true)
+            if (Users.Keys.Any(x => x == this.UserId))
                 Users.Remove(Context.ConnectionId);
-            if(Users.Count()>0)
+            if (Users.Count() > 0)
                 Clients.All.receiveConnectedUsers(Users);
             return base.OnDisconnected(stopCalled);
         }
@@ -51,7 +56,7 @@ namespace Chatter
 
         public void Broadcast(string message)
         {
-            Clients.Others.receiveMessage(this.UserId,this.UserName,message, isBroadcasted:true);
+            Clients.Others.receiveMessage(this.UserId, this.UserName, message, isBroadcasted: true);
         }
 
         public void Send(string toUserId, string message)
